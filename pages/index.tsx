@@ -94,13 +94,13 @@ export default function HomePage() {
       />
       {contract?.address && (
         <>
-          <Paper withBorder p="md" radius="md" align="center">
+          <Paper withBorder p="md" radius="md">
             <Text weight={500}>Valid Address: </Text>
             <Text weight={500} color="lime">
               {contractAddress}
             </Text>
           </Paper>
-          <Paper withBorder p="md" radius="md" align="center">
+          <Paper withBorder p="md" radius="md">
             <Text weight={500}>Total supply:</Text>
             {totalSupply && totalSupply?.data && !totalSupply.isLoading ? (
               <Text weight={500} color="lime">

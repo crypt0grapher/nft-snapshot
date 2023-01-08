@@ -12,9 +12,11 @@ const useContractSnapshot = () => {
   const provider = useProvider();
   const chainId = useChainId();
   const totalSupply = useNFTTotalSupply();
+
   const multicall = useMemo(
     () =>
       new Multicall({
+        // @ts-ignore
         ethersProvider: provider,
         tryAggregate: true,
       }),
@@ -23,7 +25,7 @@ const useContractSnapshot = () => {
 
   const ownerCall = useMemo(
     () =>
-      Array.from(Array(3).keys()).map((i) => ({
+      Array.from(Array(totalSupply.data?.toNumber() || 0).keys()).map((i) => ({
         reference: `ownerOf(${i + 1})`,
         methodName: 'ownerOf',
         methodParameters: [i + 1],
@@ -33,7 +35,7 @@ const useContractSnapshot = () => {
 
   const tokenURICall = useMemo(
     () =>
-      Array.from(Array(3).keys()).map((i) => ({
+      Array.from(Array(totalSupply.data?.toNumber() || 0).keys()).map((i) => ({
         reference: `tokenURI(${i + 1})`,
         methodName: 'tokenURI',
         methodParameters: [i + 1],
