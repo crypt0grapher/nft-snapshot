@@ -9,14 +9,21 @@ import {
   useMantineTheme,
   Stack,
   Loader,
+  Paper,
+  Text,
 } from '@mantine/core';
 import { IconCurrencyEthereum, IconArrowRight, IconArrowLeft } from '@tabler/icons';
 import { useCallback, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { isAddress } from 'ethers/lib/utils';
+import { atom, useAtom } from 'jotai';
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
 import { Welcome } from '../components/Welcome/Welcome';
 import { hooks, network } from '../connectors/network';
+import useNFTContract from '../hooks/useNFTContract';
+import useNFTTotalSupply from '../hooks/useNFTTotalSupply';
+import { LoadNFTData } from '../components/LoadNFTData/LoadNFTData';
+import { contractAddressAtom } from '../hooks/contractAddressAtom';
 
 const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = hooks;
 
@@ -31,15 +38,13 @@ export default function HomePage() {
   const provider = useProvider();
   const ENSNames = useENSNames(provider);
   const [error, setError] = useState(undefined);
-  const [address, setAddress] = useState('');
-  const [contractDetails, setContractDetails] = useState({
-    contractAddress: '',
-    totalSupply: -1,
-    owners: -1,
-  });
+  const [address, setAddress] = useState('0x746A94728A7188B6218E640e15290Bacb1c4d56a');
+  const [contractAddress, setContractAddress] = useAtom(contractAddressAtom);
   const [gettingContractDetails, setGettingContractDetails] = useState(undefined);
-
   const [fetchingTokens, setfetchingTokens] = useState(undefined);
+
+  const totalSupply = useNFTTotalSupply();
+  const contract = useNFTContract();
 
   useEffect(() => {
     void network.activate().catch(() => {
@@ -48,8 +53,10 @@ export default function HomePage() {
   }, []);
 
   const onActionIconClick = useCallback(() => {
-    setGettingContractDetails(true);
-  }, []);
+    console.log(`onActionIconClick, address ${address}`);
+    isAddress(address) ? setContractAddress(address) : setContractAddress('');
+  }, [address]);
+
   return (
     <Stack align="center" spacing="xl">
       <Welcome />
@@ -73,6 +80,7 @@ export default function HomePage() {
             color="lime"
             variant="filled"
             onClick={onActionIconClick}
+            disabled={!(!address || isAddress(address))}
           >
             {isActive && !gettingContractDetails ? (
               <IconArrowRight size={18} stroke={1.5} />
@@ -84,7 +92,28 @@ export default function HomePage() {
         placeholder="NFT Smart Contract Ethereum Address"
         rightSectionWidth={62}
       />
-      <Group position="center" />
+      {contract?.address && (
+        <>
+          <Paper withBorder p="md" radius="md" align="center">
+            <Text weight={500}>Valid Address: </Text>
+            <Text weight={500} color="lime">
+              {contractAddress}
+            </Text>
+          </Paper>
+          <Paper withBorder p="md" radius="md" align="center">
+            <Text weight={500}>Total supply:</Text>
+            {totalSupply && totalSupply?.data && !totalSupply.isLoading ? (
+              <Text weight={500} color="lime">
+                {' '}
+                {totalSupply.data.toString()}
+              </Text>
+            ) : (
+              <Loader size={18} color={theme.white} />
+            )}
+          </Paper>
+        </>
+      )}
+      {parseInt(totalSupply.data, 10) > 0 && <LoadNFTData />}
     </Stack>
   );
 }
