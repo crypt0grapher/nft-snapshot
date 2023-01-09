@@ -13,10 +13,11 @@ import {
   Text,
 } from '@mantine/core';
 import { IconCurrencyEthereum, IconArrowRight, IconArrowLeft } from '@tabler/icons';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { isAddress } from 'ethers/lib/utils';
 import { atom, useAtom } from 'jotai';
+import { SWRResponse } from 'swr/_internal';
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
 import { Welcome } from '../components/Welcome/Welcome';
 import { hooks, network } from '../connectors/network';
@@ -26,6 +27,7 @@ import { LoadNFTData } from '../components/LoadNFTData/LoadNFTData';
 import { contractAddressAtom } from '../hooks/contractAddressAtom';
 import useStyles from './styles';
 import useIsERC721Enumerable from '../hooks/useIsERC721Enumerable';
+import isCheckingSWR from '../utils/isCheckingSWR';
 
 const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = hooks;
 
@@ -42,7 +44,6 @@ export default function HomePage() {
   const [error, setError] = useState(undefined);
   const [address, setAddress] = useState('' ?? process.env.START_ADDRESS);
   const [contractAddress, setContractAddress] = useAtom(contractAddressAtom);
-  const [fetchingTokens, setfetchingTokens] = useState(undefined);
 
   const totalSupply = useNFTTotalSupply();
   const contract = useNFTContract();
@@ -86,16 +87,24 @@ export default function HomePage() {
             onClick={onActionIconClick}
             disabled={!(!address || isAddress(address))}
           >
-            {isActive && !isValidNFT.isLoading ? (
-              <IconArrowRight size={18} stroke={1.5} />
-            ) : (
+            {!isActive || isCheckingSWR(isValidNFT) ? (
               <Loader size={18} color={theme.white} />
+            ) : (
+              <IconArrowRight size={18} stroke={1.5} />
             )}
           </ActionIcon>
         }
         placeholder="NFT Smart Contract Ethereum Address"
         rightSectionWidth={62}
       />
+      {/*{contract?.address && !isCheckingSWR(isValidNFT) && !isValidNFT.isLoading && !isValidNFT.isValidating) && (*/}
+      {/*    <Paper withBorder p="md" radius="md">*/}
+      {/*    <Text weight={500}>The contract is not ERC721numerable: </Text>*/}
+      {/*    <Text weight={500} color="red">*/}
+      {/*{contractAddress}*/}
+      {/*    </Text>*/}
+      {/*    </Paper>*/}
+      {/*    )}*/}
       {contract?.address && isValidNFT.data && (
         <>
           <Paper withBorder p="md" radius="md">
@@ -115,9 +124,9 @@ export default function HomePage() {
               <Loader size={18} color={theme.white} />
             )}
           </Paper>
+          {parseInt(totalSupply.data, 10) > 0 && <LoadNFTData />}
         </>
       )}
-      {parseInt(totalSupply.data, 10) > 0 && <LoadNFTData />}
     </Stack>
   );
 }

@@ -1,74 +1,31 @@
-import useSWRImmutable from 'swr';
-import { Multicall, ContractCallResults, ContractCallContext } from 'ethereum-multicall';
+import { Contract } from '@ethersproject/contracts';
+import { isAddress } from 'ethers/lib/utils';
 import { useMemo } from 'react';
-import useNFTContract from './useNFTContract';
+import { useAtom } from 'jotai';
 import ERC712_ABI from '../abi/erc721enumerable.abi.json';
 import { hooks } from '../connectors/network';
-import useNFTTotalSupply from './useNFTTotalSupply';
+import { contractAddressAtom } from './contractAddressAtom';
+import useNFTTokenIds from './useNFTTokenIds';
+import useNFTOwners from './useNFTOwners';
+import useNFTTokenURIs from './useNFTTokenURIs';
 
-const { useChainId, useProvider } = hooks;
-const useContractSnapshot = () => {
-  const tokenContract = useNFTContract();
-  const provider = useProvider();
-  const chainId = useChainId();
-  const totalSupply = useNFTTotalSupply();
+export default function useContractSnapshot() {
+  const tokenIds = useNFTTokenIds();
+  const owners = useNFTOwners();
+  const tokenURIs = useNFTTokenURIs();
 
-  const multicall = useMemo(
-    () =>
-      new Multicall({
-        // @ts-ignore
-        ethersProvider: provider,
-        tryAggregate: true,
-      }),
-    [provider]
-  );
-
-  const ownerCall = useMemo(
-    () =>
-      Array.from(Array(totalSupply.data?.toNumber() || 0).keys()).map((i) => ({
-        reference: `ownerOf(${i + 1})`,
-        methodName: 'ownerOf',
-        methodParameters: [i + 1],
-      })),
-    [tokenContract, totalSupply]
-  );
-
-  const tokenURICall = useMemo(
-    () =>
-      Array.from(Array(totalSupply.data?.toNumber() || 0).keys()).map((i) => ({
-        reference: `tokenURI(${i + 1})`,
-        methodName: 'tokenURI',
-        methodParameters: [i + 1],
-      })),
-    [tokenContract, totalSupply]
-  );
-
-  return useSWRImmutable('useContractSnapshot', async () => {
-    if (!tokenContract || !multicall || !totalSupply) {
+  return useMemo(() => {
+    if (!tokenIds?.data || !owners?.data || !tokenURIs?.data) {
       return null;
     }
-    console.log('useContractSnapshot');
-    // const getOwnersCall = Array.from(Array(totalSupply.data?.toNumber() || 0).keys()).map((i) => ({
-
-    const contractCallContext: ContractCallContext[] = [
-      {
-        reference: 'owners',
-        contractAddress: tokenContract.address,
-        abi: ERC712_ABI,
-        calls: ownerCall,
-      },
-      {
-        reference: 'tokenURIs',
-        contractAddress: tokenContract.address,
-        abi: ERC712_ABI,
-        calls: tokenURICall,
-      },
-    ];
-    const results: ContractCallResults = await multicall.call(contractCallContext);
-    console.log(results);
-
-    return results;
-  });
-};
-
-export default useContractSnapshot;
+    try {
+      return tokenIds?.data?.map((i) => ({
+        tokenId: i,
+        owner: owners?.data?.[i],
+        tokenURI: tokenURIs?.data?.[i],
+      }));
+    } catch (error) {
+      return null;
+    }
+  }, [tokenIds, useNFTOwners, useNFTOwners]);
+}

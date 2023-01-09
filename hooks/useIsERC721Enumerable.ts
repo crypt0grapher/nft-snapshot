@@ -17,11 +17,12 @@ export default function useIsERC721Enumerable() {
     }
     try {
       console.log('useIsERC721Enumerable');
-      const promise = (
-        await Promise.all(
-          Object.values(interfaceId).map((id) => contract.supportsInterface(id) as boolean)
-        )
-      ).reduce((acc, curr) => acc && curr, true);
+      // const promise = (
+      //   await Promise.all(Object.values(interfaceId).map((id) => contract.supportsInterface(id)))
+      // ).reduce((acc, curr) => acc && curr, true);
+
+      let promise = true;
+      promise = promise && (await contract.supportsInterface(interfaceId.ERC721Enumerable));
       console.log(`reply from contract.supportsInterface: ${promise}`);
       return promise;
     } catch (error) {

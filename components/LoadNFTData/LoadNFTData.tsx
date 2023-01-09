@@ -1,9 +1,12 @@
 import { Text, Loader, ScrollArea, createStyles, Table, Button } from '@mantine/core';
 import Excel from 'exceljs';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { saveAs } from 'file-saver';
 import useContractSnapshot from '../../hooks/useContractSnapshot';
+import useNFTTokenIds from '../../hooks/useNFTTokenIds';
+import useNFTOwners from '../../hooks/useNFTOwners';
+import useNFTTokenURIs from '../../hooks/useNFTTokenURIs';
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -35,6 +38,10 @@ export function LoadNFTData() {
   const workbook = new Excel.Workbook();
   const snapshot = useContractSnapshot();
 
+  const tokenIds = useNFTTokenIds();
+  const owners = useNFTOwners();
+  const tokenURIs = useNFTTokenURIs();
+
   const columns = [
     {
       key: 'tokenId',
@@ -60,30 +67,27 @@ export function LoadNFTData() {
     );
   };
 
-  const table = useMemo(() => {
-    const worksheet = workbook.addWorksheet('NFT');
-    worksheet.columns = columns;
-    const temp = snapshot?.data?.results?.owners?.callsReturnContext?.map((record) => {
-      const data = {
-        tokenId: record.methodParameters[0],
-        owner: record.returnValues[0],
-        tokenURI:
-          snapshot?.data?.results?.tokenURIs?.callsReturnContext[record.methodParameters[0] - 1]
-            .returnValues[0],
-      };
-      worksheet.addRow(data);
-      return data;
-    });
-    return temp;
+  const worksheet = useMemo(() => {
+    if (snapshot) {
+      const ws = workbook.addWorksheet('NFT');
+      ws.columns = columns;
+      ws.addRows(snapshot);
+      return ws;
+    }
+    return null;
   }, [snapshot]);
 
   return (
     <>
-      {!table && <Loader size={100} color="lime" />}
+      {!snapshot && <Loader size={100} color="lime" />}
       <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-        {!snapshot?.data && 'Loading NFT data...'}
+        {!tokenIds && 'Loading NFT tokenIds...'}
+        {!owners && 'Querieng NFT owners...'}
+        {!tokenURIs && 'Reading NFT attribute URLs...'}
+        {!!tokenIds && !!owners && !!tokenURIs && !snapshot && 'Getting NFT data...'}
       </Text>
-      {!!snapshot?.data && (
+
+      {!!snapshot && (
         <>
           <Button
             variant="gradient"
@@ -113,7 +117,7 @@ export function LoadNFTData() {
                 </tr>
               </thead>
               <tbody>
-                {table?.slice(100).map((record) => (
+                {snapshot?.slice(50).map((record) => (
                   <tr key={record.tokenId}>
                     {Object.entries(record).map(([key, value]) => (
                       <td key={key}> {value}</td>
