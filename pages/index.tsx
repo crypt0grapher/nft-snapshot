@@ -25,6 +25,7 @@ import useNFTTotalSupply from '../hooks/useNFTTotalSupply';
 import { LoadNFTData } from '../components/LoadNFTData/LoadNFTData';
 import { contractAddressAtom } from '../hooks/contractAddressAtom';
 import useStyles from './styles';
+import useIsERC721Enumerable from '../hooks/useIsERC721Enumerable';
 
 const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = hooks;
 
@@ -41,11 +42,11 @@ export default function HomePage() {
   const [error, setError] = useState(undefined);
   const [address, setAddress] = useState('' ?? process.env.START_ADDRESS);
   const [contractAddress, setContractAddress] = useAtom(contractAddressAtom);
-  const [gettingContractDetails, setGettingContractDetails] = useState(undefined);
   const [fetchingTokens, setfetchingTokens] = useState(undefined);
 
   const totalSupply = useNFTTotalSupply();
   const contract = useNFTContract();
+  const isValidNFT = useIsERC721Enumerable();
 
   const { classes } = useStyles();
 
@@ -85,7 +86,7 @@ export default function HomePage() {
             onClick={onActionIconClick}
             disabled={!(!address || isAddress(address))}
           >
-            {isActive && !gettingContractDetails ? (
+            {isActive && !isValidNFT.isLoading ? (
               <IconArrowRight size={18} stroke={1.5} />
             ) : (
               <Loader size={18} color={theme.white} />
@@ -95,7 +96,7 @@ export default function HomePage() {
         placeholder="NFT Smart Contract Ethereum Address"
         rightSectionWidth={62}
       />
-      {contract?.address && (
+      {contract?.address && isValidNFT.data && (
         <>
           <Paper withBorder p="md" radius="md">
             <Text weight={500}>Valid Address: </Text>

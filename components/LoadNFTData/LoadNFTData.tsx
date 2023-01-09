@@ -81,13 +81,13 @@ export function LoadNFTData() {
     <>
       {!table && <Loader size={100} color="lime" />}
       <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-        {!snapshot?.data ? 'Loading NFT data...' : 'NF data loaded'}
+        {!snapshot?.data && 'Loading NFT data...'}
       </Text>
       {!!snapshot?.data && (
         <>
           <Button
             variant="gradient"
-            color="lime"
+            color="green"
             radius="xl"
             size="xl"
             styles={{
@@ -113,7 +113,7 @@ export function LoadNFTData() {
                 </tr>
               </thead>
               <tbody>
-                {table?.map((record) => (
+                {table?.slice(100).map((record) => (
                   <tr key={record.tokenId}>
                     {Object.entries(record).map(([key, value]) => (
                       <td key={key}> {value}</td>
