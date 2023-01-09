@@ -86,7 +86,8 @@ export function LoadNFTData() {
       {!!snapshot?.data && (
         <>
           <Button
-            variant="light"
+            variant="gradient"
+            color="lime"
             radius="xl"
             size="xl"
             styles={{

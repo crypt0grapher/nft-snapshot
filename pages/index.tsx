@@ -24,6 +24,7 @@ import useNFTContract from '../hooks/useNFTContract';
 import useNFTTotalSupply from '../hooks/useNFTTotalSupply';
 import { LoadNFTData } from '../components/LoadNFTData/LoadNFTData';
 import { contractAddressAtom } from '../hooks/contractAddressAtom';
+import useStyles from './styles';
 
 const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = hooks;
 
@@ -38,13 +39,15 @@ export default function HomePage() {
   const provider = useProvider();
   const ENSNames = useENSNames(provider);
   const [error, setError] = useState(undefined);
-  const [address, setAddress] = useState('0x746A94728A7188B6218E640e15290Bacb1c4d56a');
+  const [address, setAddress] = useState('' ?? process.env.START_ADDRESS);
   const [contractAddress, setContractAddress] = useAtom(contractAddressAtom);
   const [gettingContractDetails, setGettingContractDetails] = useState(undefined);
   const [fetchingTokens, setfetchingTokens] = useState(undefined);
 
   const totalSupply = useNFTTotalSupply();
   const contract = useNFTContract();
+
+  const { classes } = useStyles();
 
   useEffect(() => {
     void network.activate().catch(() => {
@@ -65,7 +68,7 @@ export default function HomePage() {
       </Badge>
       <ColorSchemeToggle />
       <TextInput
-        style={{ minWidth: '600px' }}
+        className={classes.button}
         maxLength={'0x746a94728a7188b6218e640e15290bacb1c4d56a'.length}
         icon={<IconCurrencyEthereum size={18} stroke={1.5} />}
         radius="xl"
