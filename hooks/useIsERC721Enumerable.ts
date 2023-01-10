@@ -13,21 +13,20 @@ export default function useIsERC721Enumerable() {
   const contract = useNFTContract();
   return useSWRImmutable('useIsERC721Enumerable', async () => {
     if (!contract) {
+      console.log('useIsERC721Enumerable !contract');
       return null;
     }
     try {
-      console.log('useIsERC721Enumerable');
+      console.log('useIsERC721Enumerable asking  Promise.all');
       // const promise = (
-      //   await Promise.all(Object.values(interfaceId).map((id) => contract.supportsInterface(id)))
+      //   await Promise.all(Object.values(interfaceId).map((id) => !!contract.supportsInterface(id)))
       // ).reduce((acc, curr) => acc && curr, true);
-
-      let promise = true;
-      promise = promise && (await contract.supportsInterface(interfaceId.ERC721Enumerable));
-      console.log(`reply from contract.supportsInterface: ${promise}`);
-      return promise;
+      const promise = await contract.supportsInterface(interfaceId.ERC721Enumerable);
+      console.log('useIsERC721Enumerable: ', promise);
+      return !!promise;
     } catch (error) {
       console.debug(`error in useIsERC721Enumerable: ${error}`);
-      return null;
+      return false;
     }
   });
 }

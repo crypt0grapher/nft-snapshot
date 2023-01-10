@@ -51,6 +51,7 @@ const useNFTTokenIds = () => {
       (record) => record.returnValues[0]
     );
 
+    // return [0, 1, 2, 3];
     return tokenIds;
   });
 };

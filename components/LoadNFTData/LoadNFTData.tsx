@@ -1,4 +1,4 @@
-import { Text, Loader, ScrollArea, createStyles, Table, Button } from '@mantine/core';
+import {Text, Loader, ScrollArea, createStyles, Table, Button, Stack} from '@mantine/core';
 import Excel from 'exceljs';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -37,10 +37,14 @@ export function LoadNFTData() {
   const [scrolled, setScrolled] = useState(false);
   const workbook = new Excel.Workbook();
   const snapshot = useContractSnapshot();
+  console.log('snapshot: ', snapshot);
 
   const tokenIds = useNFTTokenIds();
+  console.log('tokenIds: ', tokenIds);
   const owners = useNFTOwners();
+  console.log('owners: ', owners);
   const tokenURIs = useNFTTokenURIs();
+  console.log('tokenURIs: ', tokenURIs);
 
   const columns = [
     {
@@ -67,28 +71,43 @@ export function LoadNFTData() {
     );
   };
 
-  const worksheet = useMemo(() => {
+  useEffect(() => {
     if (snapshot) {
       const ws = workbook.addWorksheet('NFT');
       ws.columns = columns;
       ws.addRows(snapshot);
-      return ws;
     }
-    return null;
   }, [snapshot]);
 
   return (
-    <>
+    <Stack>
       {!snapshot && <Loader size={100} color="lime" />}
-      <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-        {!tokenIds && 'Loading NFT tokenIds...'}
-        {!owners && 'Querieng NFT owners...'}
-        {!tokenURIs && 'Reading NFT attribute URLs...'}
-        {!!tokenIds && !!owners && !!tokenURIs && !snapshot && 'Getting NFT data...'}
-      </Text>
+      {/*<Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
+      {/*  {!tokenIds?.data && (*/}
+      {/*    <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
+      {/*      Loading NFT tokenIds...*/}
+      {/*    </Text>*/}
+      {/*  )}*/}
+      {/*  {!owners?.data && (*/}
+      {/*    <Text color="orange" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
+      {/*      Loading NFT owners...*/}
+      {/*    </Text>*/}
+      {/*  )}*/}
+      {/*  {!tokenURIs?.data && (*/}
+      {/*    <Text color="green" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
+      {/*      Reading NFT attribute URLs...*/}
+      {/*    </Text>*/}
+      {/*  )}*/}
+      {!snapshot && (
+        // {!!tokenIds.data && !!owners?.data && !!tokenURIs?.data && !snapshot && (
+        <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
+          Getting NFT data...
+        </Text>
+      )}
+      {/*</Text>*/}
 
       {!!snapshot && (
-        <>
+        <Stack>
           <Button
             variant="gradient"
             color="green"
@@ -117,10 +136,10 @@ export function LoadNFTData() {
                 </tr>
               </thead>
               <tbody>
-                {snapshot?.slice(50).map((record) => (
+                {snapshot?.map((record) => (
                   <tr key={record.tokenId}>
                     {Object.entries(record).map(([key, value]) => (
-                      <td key={key}> {value}</td>
+                      <td key={key}> {value ? value.toString() : '-'} </td>
                     ))}
                   </tr>
                 ))}
@@ -129,6 +148,6 @@ export function LoadNFTData() {
           </ScrollArea>
         </>
       )}
-    </>
+    </Stack>
   );
 }

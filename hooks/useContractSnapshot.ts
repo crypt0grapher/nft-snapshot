@@ -19,13 +19,16 @@ export default function useContractSnapshot() {
       return null;
     }
     try {
-      return tokenIds?.data?.map((i) => ({
+      const table = tokenIds?.data?.map((i) => ({
         tokenId: i,
         owner: owners?.data?.[i],
         tokenURI: tokenURIs?.data?.[i],
       }));
+      console.log('useContractSnapshot: ', table);
+      return table;
     } catch (error) {
+      console.error(error);
       return null;
     }
-  }, [tokenIds, useNFTOwners, useNFTOwners]);
+  }, [tokenIds, owners, tokenURIs]);
 }

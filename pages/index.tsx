@@ -27,7 +27,8 @@ import { LoadNFTData } from '../components/LoadNFTData/LoadNFTData';
 import { contractAddressAtom } from '../hooks/contractAddressAtom';
 import useStyles from './styles';
 import useIsERC721Enumerable from '../hooks/useIsERC721Enumerable';
-import isCheckingSWR from '../utils/isCheckingSWR';
+import isLoadingSWR from '../utils/isLoadingSWR';
+import isFetched from '../utils/isFetched';
 
 const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = hooks;
 
@@ -48,7 +49,7 @@ export default function HomePage() {
   const totalSupply = useNFTTotalSupply();
   const contract = useNFTContract();
   const isValidNFT = useIsERC721Enumerable();
-
+  console.log(`JSON.stringify(isValidNFT): ${JSON.stringify(isValidNFT)}`);
   const { classes } = useStyles();
 
   useEffect(() => {
@@ -77,7 +78,8 @@ export default function HomePage() {
         size="xl"
         value={address}
         onChange={(event) => setAddress(event.currentTarget.value)}
-        error={!address || isAddress(address) ? undefined : 'Invalid address'}
+        err
+        or={!address || isAddress(address) ? undefined : 'Invalid address'}
         rightSection={
           <ActionIcon
             size={32}
@@ -87,7 +89,7 @@ export default function HomePage() {
             onClick={onActionIconClick}
             disabled={!(!address || isAddress(address))}
           >
-            {!isActive || isCheckingSWR(isValidNFT) ? (
+            {!isActive || (contract && (isValidNFT.isValidating || isLoadingSWR(isValidNFT))) ? (
               <Loader size={18} color={theme.white} />
             ) : (
               <IconArrowRight size={18} stroke={1.5} />
@@ -97,32 +99,32 @@ export default function HomePage() {
         placeholder="NFT Smart Contract Ethereum Address"
         rightSectionWidth={62}
       />
-      {/*{contract?.address && !isCheckingSWR(isValidNFT) && !isValidNFT.isLoading && !isValidNFT.isValidating) && (*/}
-      {/*    <Paper withBorder p="md" radius="md">*/}
-      {/*    <Text weight={500}>The contract is not ERC721numerable: </Text>*/}
-      {/*    <Text weight={500} color="red">*/}
-      {/*{contractAddress}*/}
-      {/*    </Text>*/}
-      {/*    </Paper>*/}
-      {/*    )}*/}
+      {contract?.address && isValidNFT.data === false && (
+        <Paper withBorder p="md" radius="md">
+          <Text weight={500}>The contract is not valid ERC721numerable</Text>
+          <Text weight={500} color="red">
+            {contractAddress}
+          </Text>
+        </Paper>
+      )}
       {contract?.address && isValidNFT.data && (
         <>
           <Paper withBorder p="md" radius="md">
-            <Text weight={500}>Valid Address: </Text>
-            <Text weight={500} color="lime">
-              {contractAddress}
-            </Text>
-          </Paper>
-          <Paper withBorder p="md" radius="md">
-            <Text weight={500}>Total supply:</Text>
-            {totalSupply && totalSupply?.data && !totalSupply.isLoading ? (
-              <Text weight={500} color="lime">
-                {' '}
-                {totalSupply.data.toString()}
+            <Stack spacing="md" align="center">
+              <Text weight={500}>Valid ERC721Enumerable</Text>
+              <Text weight={300} color="lime">
+                {contractAddress}
               </Text>
-            ) : (
-              <Loader size={18} color={theme.white} />
-            )}
+              <Text weight={500}>Total supply:</Text>
+              {totalSupply && totalSupply?.data && !totalSupply.isLoading ? (
+                <Text weight={300} color="lime">
+                  {' '}
+                  {totalSupply.data.toString()}
+                </Text>
+              ) : (
+                <Loader size={18} color={theme.white} />
+              )}
+            </Stack>
           </Paper>
           {parseInt(totalSupply.data, 10) > 0 && <LoadNFTData />}
         </>
