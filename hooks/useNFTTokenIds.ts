@@ -47,8 +47,8 @@ const useNFTTokenIds = () => {
     ];
     const results: ContractCallResults = await multicall.call(contractCallContext);
 
-    const tokenIds = results.results?.tokenByIndexCall?.callsReturnContext?.map(
-      (record) => record.returnValues[0]
+    const tokenIds = results.results?.tokenByIndexCall?.callsReturnContext?.map((record) =>
+      parseInt(record.returnValues[0], 10)
     );
 
     // return [0, 1, 2, 3];
