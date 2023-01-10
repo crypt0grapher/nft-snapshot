@@ -1,4 +1,4 @@
-import {Text, Loader, ScrollArea, createStyles, Table, Button, Stack} from '@mantine/core';
+import { Text, Loader, ScrollArea, createStyles, Table, Button } from '@mantine/core';
 import Excel from 'exceljs';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -80,7 +80,7 @@ export function LoadNFTData() {
   }, [snapshot]);
 
   return (
-    <Stack>
+    <>
       {!snapshot && <Loader size={100} color="lime" />}
       {/*<Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
       {/*  {!tokenIds?.data && (*/}
@@ -107,7 +107,7 @@ export function LoadNFTData() {
       {/*</Text>*/}
 
       {!!snapshot && (
-        <Stack>
+        <>
           <Button
             variant="gradient"
             color="green"
@@ -148,6 +148,6 @@ export function LoadNFTData() {
           </ScrollArea>
         </>
       )}
-    </Stack>
+    </>
   );
 }
