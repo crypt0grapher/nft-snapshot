@@ -79,21 +79,6 @@ export function LoadNFTData() {
     <>
       {!snapshot && <Loader size={100} color="lime" />}
       {/*<Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
-      {/*  {!tokenIds?.data && (*/}
-      {/*    <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
-      {/*      Loading NFT tokenIds...*/}
-      {/*    </Text>*/}
-      {/*  )}*/}
-      {/*  {!owners?.data && (*/}
-      {/*    <Text color="orange" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
-      {/*      Loading NFT owners...*/}
-      {/*    </Text>*/}
-      {/*  )}*/}
-      {/*  {!tokenURIs?.data && (*/}
-      {/*    <Text color="green" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
-      {/*      Reading NFT attribute URLs...*/}
-      {/*    </Text>*/}
-      {/*  )}*/}
       {!snapshot && (
         // {!!tokenIds.data && !!owners?.data && !!tokenURIs?.data && !snapshot && (
         <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
@@ -102,6 +87,21 @@ export function LoadNFTData() {
       )}
       {/*</Text>*/}
 
+      {tokenIds?.data && (
+        <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
+          Got {tokenIds.data.length} TokenIds
+        </Text>
+      )}
+      {owners?.data && (
+        <Text color="orange" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
+          Loaded {owners.data.length} owners.
+        </Text>
+      )}
+      {tokenURIs?.data && (
+        <Text color="green" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
+          Read {tokenURIs.data.length} NFT attribute URLs.
+        </Text>
+      )}
       {!!snapshot && (
         <>
           <Button

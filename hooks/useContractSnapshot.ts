@@ -19,7 +19,7 @@ export default function useContractSnapshot() {
       return null;
     }
     try {
-      const table = tokenIds?.data?.map((i) => ({
+      const table = tokenIds?.data?.slice(10).map((i) => ({
         tokenId: i,
         owner: owners?.data?.[i],
         tokenURI: tokenURIs?.data?.[i],

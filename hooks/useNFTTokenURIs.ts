@@ -34,29 +34,25 @@ const useContractSnapshot = () => {
     [tokenContract, totalSupply]
   );
 
-  return useSWR(
-    'useContractSnapshot',
-    async () => {
-      if (!tokenContract || !multicall || !totalSupply || !tokenURICall) {
-        return null;
-      }
-      const contractCallContext: ContractCallContext[] = [
-        {
-          reference: 'tokenURIs',
-          contractAddress: tokenContract.address,
-          abi: ERC712_ABI,
-          calls: tokenURICall,
-        },
-      ];
-      const results: ContractCallResults = await multicall.call(contractCallContext);
-      return results.results?.tokenURIs?.callsReturnContext?.map(
-        (record) => record.returnValues[0]
-      );
-    },
-    {
-      revalidateOnMount: false,
+  return useSWR('useContractSnapshot', async () => {
+    if (!tokenContract || !multicall || !totalSupply || !tokenURICall) {
+      return null;
     }
-  );
+    const contractCallContext: ContractCallContext[] = [
+      {
+        reference: 'tokenURIs',
+        contractAddress: tokenContract.address,
+        abi: ERC712_ABI,
+        calls: tokenURICall,
+      },
+    ];
+    const results: ContractCallResults = await multicall.call(contractCallContext);
+    const tokenURIs = results.results?.tokenURIs?.callsReturnContext?.map(
+      (record) => record.returnValues[0]
+    );
+    console.log(`tokenURIs: ${tokenURIs.length}`);
+    return tokenURIs;
+  });
 };
 
 export default useContractSnapshot;

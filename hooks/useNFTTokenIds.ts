@@ -2,7 +2,7 @@ import useSWR from 'swr';
 import { Multicall, ContractCallResults, ContractCallContext } from 'ethereum-multicall';
 import { useMemo } from 'react';
 import useNFTContract from './useNFTContract';
-import ERC712_ABI from '../abi/erc721enumerable.abi.json';
+import ERC721_ABI from '../abi/erc721enumerable.abi.json';
 import { hooks } from '../connectors/network';
 import useNFTTotalSupply from './useNFTTotalSupply';
 
@@ -33,33 +33,30 @@ const useNFTTokenIds = () => {
     [tokenContract, totalSupply]
   );
 
-  return useSWR(
-    'useNFTTokenIds',
-    async () => {
-      if (!tokenContract || !multicall || !totalSupply) {
-        return null;
-      }
-      const contractCallContext: ContractCallContext[] = [
-        {
-          reference: 'tokenByIndexCall',
-          contractAddress: tokenContract.address,
-          abi: ERC712_ABI,
-          calls: tokenByIndexCall,
-        },
-      ];
-      const results: ContractCallResults = await multicall.call(contractCallContext);
-
-      const tokenIds = results.results?.tokenByIndexCall?.callsReturnContext?.map((record) =>
-        parseInt(record.returnValues[0], 10)
-      );
-
-      // return [0, 1, 2, 3];
-      return tokenIds;
-    },
-    {
-      revalidateOnMount: false,
+  return useSWR('useNFTTokenIds', async () => {
+    if (!tokenContract || !multicall || !totalSupply) {
+      return null;
     }
-  );
+    const contractCallContext: ContractCallContext[] = [
+      {
+        reference: 'tokenByIndexCall',
+        contractAddress: tokenContract.address,
+        abi: ERC721_ABI,
+        calls: tokenByIndexCall,
+      },
+    ];
+    console.log('calling multicall tokenByIndexCall');
+    const results: ContractCallResults = await multicall.call(contractCallContext);
+    console.log('finished, ', results);
+    const tokenIds = results.results?.tokenByIndexCall?.callsReturnContext?.map((record) =>
+      Number(record.returnValues[0])
+    );
+
+    // return [0, 1, 2, 3];
+    console.log(`tokenIds: ${tokenIds}`);
+
+    return tokenIds;
+  });
 };
 
 export default useNFTTokenIds;

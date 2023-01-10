@@ -35,30 +35,25 @@ const useNFTOwners = () => {
     [tokenContract, tokenIds]
   );
 
-  return useSWR(
-    'useNFTOwners',
-    async () => {
-      if (!tokenContract || !multicall || !totalSupply || !tokenIds || !ownerCall) {
-        return null;
-      }
-      const contractCallContext: ContractCallContext[] = [
-        {
-          reference: 'owners',
-          contractAddress: tokenContract.address,
-          abi: ERC712_ABI,
-          calls: ownerCall,
-        },
-      ];
-      const results: ContractCallResults = await multicall.call(contractCallContext);
-      const owners = results.results?.owners?.callsReturnContext?.map(
-        (record) => record.returnValues[0]
-      );
-      return owners;
-    },
-    {
-      revalidateOnMount: false,
+  return useSWR('useNFTOwners', async () => {
+    if (!tokenContract || !multicall || !totalSupply || !tokenIds || !ownerCall) {
+      return null;
     }
-  );
+    const contractCallContext: ContractCallContext[] = [
+      {
+        reference: 'owners',
+        contractAddress: tokenContract.address,
+        abi: ERC712_ABI,
+        calls: ownerCall,
+      },
+    ];
+    const results: ContractCallResults = await multicall.call(contractCallContext);
+    const owners = results.results?.owners?.callsReturnContext?.map(
+      (record) => record.returnValues[0]
+    );
+    console.log(`owners: ${owners.length}: ${owners}`);
+    return owners;
+  });
 };
 
 export default useNFTOwners;
