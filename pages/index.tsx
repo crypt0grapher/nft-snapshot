@@ -114,17 +114,17 @@ export default function HomePage() {
                 {contractAddress}
               </Text>
               <Text weight={500}>Total supply:</Text>
-              {totalSupply && totalSupply?.data && !totalSupply.isLoading ? (
+              {totalSupply && totalSupply.data && totalSupply.data > 0 ? (
                 <Text weight={300} color="lime">
                   {' '}
-                  {totalSupply.data.toString()}
+                  {totalSupply?.data?.toString()}
                 </Text>
               ) : (
                 <Loader size={18} color={theme.white} />
               )}
             </Stack>
           </Paper>
-          {parseInt(totalSupply.data, 10) > 0 && <LoadNFTData />}
+          {parseInt(totalSupply?.data, 10) > 0 && <LoadNFTData />}
         </>
       )}
     </Stack>
