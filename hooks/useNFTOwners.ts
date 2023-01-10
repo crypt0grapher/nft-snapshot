@@ -1,4 +1,4 @@
-import useSWRImmutable from 'swr';
+import useSWR from 'swr';
 import { Multicall, ContractCallResults, ContractCallContext } from 'ethereum-multicall';
 import { useMemo } from 'react';
 import { BigNumber } from '@ethersproject/bignumber';
@@ -35,35 +35,24 @@ const useNFTOwners = () => {
     [tokenContract, tokenIds]
   );
 
-  return useSWRImmutable(
-    'useNFTOwners',
-    async () => {
-      if (!tokenContract || !multicall || !totalSupply || !tokenIds || !ownerCall) {
-        return null;
-      }
-      const contractCallContext: ContractCallContext[] = [
-        {
-          reference: 'owners',
-          contractAddress: tokenContract.address,
-          abi: ERC712_ABI,
-          calls: ownerCall,
-        },
-      ];
-      const results: ContractCallResults = await multicall.call(contractCallContext);
-      const owners = results.results?.owners?.callsReturnContext?.map(
-        (record) => record.returnValues[0]
-      );
-      return owners;
-    },
-    {
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
+  return useSWR('useNFTOwners', async () => {
+    if (!tokenContract || !multicall || !totalSupply || !tokenIds || !ownerCall) {
+      return null;
     }
-  );
+    const contractCallContext: ContractCallContext[] = [
+      {
+        reference: 'owners',
+        contractAddress: tokenContract.address,
+        abi: ERC712_ABI,
+        calls: ownerCall,
+      },
+    ];
+    const results: ContractCallResults = await multicall.call(contractCallContext);
+    const owners = results.results?.owners?.callsReturnContext?.map(
+      (record) => record.returnValues[0]
+    );
+    return owners;
+  });
 };
 
 export default useNFTOwners;

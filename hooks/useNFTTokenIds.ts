@@ -1,4 +1,4 @@
-import useSWRImmutable from 'swr';
+import useSWR from 'swr';
 import { Multicall, ContractCallResults, ContractCallContext } from 'ethereum-multicall';
 import { useMemo } from 'react';
 import useNFTContract from './useNFTContract';
@@ -33,38 +33,27 @@ const useNFTTokenIds = () => {
     [tokenContract, totalSupply]
   );
 
-  return useSWRImmutable(
-    'useNFTTokenIds',
-    async () => {
-      if (!tokenContract || !multicall || !totalSupply) {
-        return null;
-      }
-      const contractCallContext: ContractCallContext[] = [
-        {
-          reference: 'tokenByIndexCall',
-          contractAddress: tokenContract.address,
-          abi: ERC712_ABI,
-          calls: tokenByIndexCall,
-        },
-      ];
-      const results: ContractCallResults = await multicall.call(contractCallContext);
-
-      const tokenIds = results.results?.tokenByIndexCall?.callsReturnContext?.map((record) =>
-        parseInt(record.returnValues[0], 10)
-      );
-
-      // return [0, 1, 2, 3];
-      return tokenIds;
-    },
-    {
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-      revalidateOnReconnect: false,
-      refreshWhenOffline: false,
-      refreshWhenHidden: false,
-      refreshInterval: 0,
+  return useSWR('useNFTTokenIds', async () => {
+    if (!tokenContract || !multicall || !totalSupply) {
+      return null;
     }
-  );
+    const contractCallContext: ContractCallContext[] = [
+      {
+        reference: 'tokenByIndexCall',
+        contractAddress: tokenContract.address,
+        abi: ERC712_ABI,
+        calls: tokenByIndexCall,
+      },
+    ];
+    const results: ContractCallResults = await multicall.call(contractCallContext);
+
+    const tokenIds = results.results?.tokenByIndexCall?.callsReturnContext?.map((record) =>
+      parseInt(record.returnValues[0], 10)
+    );
+
+    // return [0, 1, 2, 3];
+    return tokenIds;
+  });
 };
 
 export default useNFTTokenIds;

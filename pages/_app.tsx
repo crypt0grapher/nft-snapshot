@@ -4,6 +4,7 @@ import { getCookie, setCookie } from 'cookies-next';
 import Head from 'next/head';
 import { MantineProvider, ColorScheme, ColorSchemeProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
+import useSWR, { SWRConfig } from 'swr';
 
 export default function App(props: AppProps & { colorScheme: ColorScheme }) {
   const { Component, pageProps } = props;
@@ -26,7 +27,27 @@ export default function App(props: AppProps & { colorScheme: ColorScheme }) {
       <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={toggleColorScheme}>
         <MantineProvider theme={{ colorScheme }} withGlobalStyles withNormalizeCSS>
           <NotificationsProvider>
-            <Component {...pageProps} />
+            <SWRConfig
+              value={{
+                // revalidateOnFocus: false,
+                // revalidateOnMount: false,
+                // revalidateOnReconnect: false,
+                // refreshWhenOffline: false,
+                // refreshWhenHidden: false,
+                // refreshInterval: 0,
+                shouldRetryOnError: true,
+                // compare: (a, b) => a === b,
+                revalidateIfStale: false,
+                revalidateOnFocus: false,
+                revalidateOnReconnect: false,
+                errorRetryInterval: 1000,
+                errorRetryCount: 3,
+                revalidateOnMount: true, // If false, undefined data gets cached against the key.
+                dedupingInterval: 3_600_000, // dont duplicate a request w/ same key for 1hr
+              }}
+            >
+              <Component {...pageProps} />
+            </SWRConfig>
           </NotificationsProvider>
         </MantineProvider>
       </ColorSchemeProvider>
