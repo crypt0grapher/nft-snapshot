@@ -31,16 +31,15 @@ export default function App(props: AppProps & { colorScheme: ColorScheme }) {
               value={{
                 revalidateOnFocus: false,
                 revalidateOnMount: true,
-                // revalidateOnReconnect: false,
-                // refreshWhenOffline: false,
-                // refreshWhenHidden: false,
-                // refreshInterval: 0,
-                shouldRetryOnError: true,
-                // compare: (a, b) => a === b,
-                revalidateIfStale: false,
                 revalidateOnReconnect: false,
+                refreshWhenOffline: false,
+                refreshWhenHidden: false,
+                refreshInterval: 0,
+                shouldRetryOnError: true,
+                compare: (a, b) => a === b,
+                revalidateIfStale: false,
                 errorRetryInterval: 1000,
-                errorRetryCount: 3,
+                errorRetryCount: 10,
                 dedupingInterval: 3_600_000, // dont duplicate a request w/ same key for 1hr
               }}
             >

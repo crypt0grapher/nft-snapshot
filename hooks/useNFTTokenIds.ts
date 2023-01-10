@@ -1,6 +1,7 @@
 import useSWR from 'swr';
 import { Multicall, ContractCallResults, ContractCallContext } from 'ethereum-multicall';
 import { useMemo } from 'react';
+import { BigNumber } from 'ethers';
 import useNFTContract from './useNFTContract';
 import ERC721_ABI from '../abi/erc721enumerable.abi.json';
 import { hooks } from '../connectors/network';
@@ -25,7 +26,7 @@ const useNFTTokenIds = () => {
 
   const tokenByIndexCall = useMemo(
     () =>
-      Array.from(Array(totalSupply.data?.toNumber() || 0).keys()).map((i) => ({
+      Array.from(Array(totalSupply.data ? totalSupply.data.toNumber() + 1 : 0).keys()).map((i) => ({
         reference: `tokenByIndex(${i})`,
         methodName: 'tokenByIndex',
         methodParameters: [i],
@@ -49,7 +50,7 @@ const useNFTTokenIds = () => {
     const results: ContractCallResults = await multicall.call(contractCallContext);
     console.log('finished, ', results);
     const tokenIds = results.results?.tokenByIndexCall?.callsReturnContext?.map((record) =>
-      Number(record.returnValues[0])
+      BigNumber.from(record.returnValues[0]).toNumber()
     );
 
     // return [0, 1, 2, 3];

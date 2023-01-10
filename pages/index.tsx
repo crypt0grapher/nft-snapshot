@@ -43,7 +43,7 @@ export default function HomePage() {
   const provider = useProvider();
   const ENSNames = useENSNames(provider);
   const [error, setError] = useState(undefined);
-  const [address, setAddress] = useState('' ?? process.env.START_ADDRESS);
+  const [address, setAddress] = useState('' ?? process.env.NEXT_PUBLIC_START_ADDRESS);
   const [contractAddress, setContractAddress] = useAtom(contractAddressAtom);
   const [valid, setValid] = useState(false);
 
@@ -57,6 +57,7 @@ export default function HomePage() {
   }, [totalSupply?.data, contract, isValidNFT?.data]);
 
   const { classes } = useStyles();
+  console.log(provider?.connection?.url);
 
   useEffect(() => {
     void network.activate().catch(() => {
@@ -94,7 +95,7 @@ export default function HomePage() {
             onClick={onActionIconClick}
             disabled={!(!address || isAddress(address))}
           >
-            {!isActive || (contract && (isValidNFT.isValidating || isLoadingSWR(isValidNFT))) ? (
+            {!isActive || (contract && !valid) ? (
               <Loader size={18} color={theme.white} />
             ) : (
               <IconArrowRight size={18} stroke={1.5} />
