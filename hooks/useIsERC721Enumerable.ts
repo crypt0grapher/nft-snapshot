@@ -10,22 +10,31 @@ import useNFTContract from './useNFTContract';
 import interfaceId from '../utils/interfaceId';
 
 export default function useIsERC721Enumerable() {
-  const contract = useNFTContract();
+  const tokenContract = useNFTContract();
   return useSWR('useIsERC721Enumerable', async () => {
-    if (!contract) {
-      console.log('useIsERC721Enumerable !contract');
-      return null;
-    }
-    try {
-      console.log('useIsERC721Enumerable asking  Promise.all');
-      // const promise = (
-      //   await Promise.all(Object.values(interfaceId).map((id) => !!contract.supportsInterface(id)))
-      // ).reduce((acc, curr) => acc && curr, true);
-      const promise = await contract.supportsInterface(interfaceId.ERC721Enumerable);
-      return !!promise;
-    } catch (error) {
-      console.debug(`error in useIsERC721Enumerable: ${error}`);
-      return false;
-    }
+    console.log('useNFTTotalSupply');
+    const ts = await tokenContract?.supportsInterface(interfaceId.ERC721Enumerable);
+    console.log(ts.toString());
+    return ts;
   });
 }
+// export default function useIsERC721Enumerable() {
+//   const contract = useNFTContract();
+//   return useSWR('useIsERC721Enumerable', async () => {
+//     if (!contract) {
+//       console.log('useIsERC721Enumerable !contract');
+//       return null;
+//     }
+//     try {
+//       console.log('useIsERC721Enumerable asking  Promise.all');
+//       // const promise = (
+//       //   await Promise.all(Object.values(interfaceId).map((id) => !!contract.supportsInterface(id)))
+//       // ).reduce((acc, curr) => acc && curr, true);
+//       const promise = await contract.supportsInterface(interfaceId.ERC721Enumerable);
+//       return !!promise;
+//     } catch (error) {
+//       console.debug(`error in useIsERC721Enumerable: ${error}`);
+//       return false;
+//     }
+//   });
+// }

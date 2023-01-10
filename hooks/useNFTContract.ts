@@ -13,9 +13,11 @@ export default function useNFTContract<T extends Contract = Contract>(ABI = ERC7
   const chainId = useChainId();
   return useMemo(() => {
     if (!address || !ABI || !isAddress(address) || !provider || !chainId) {
+      console.log('useNFTContract null');
       return null;
     }
     try {
+      console.log('useNFTContract contract ok');
       return new Contract(address, ABI, provider);
     } catch (error) {
       return null;

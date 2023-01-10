@@ -29,8 +29,8 @@ export default function App(props: AppProps & { colorScheme: ColorScheme }) {
           <NotificationsProvider>
             <SWRConfig
               value={{
-                // revalidateOnFocus: false,
-                // revalidateOnMount: false,
+                revalidateOnFocus: false,
+                revalidateOnMount: true,
                 // revalidateOnReconnect: false,
                 // refreshWhenOffline: false,
                 // refreshWhenHidden: false,
@@ -38,11 +38,9 @@ export default function App(props: AppProps & { colorScheme: ColorScheme }) {
                 shouldRetryOnError: true,
                 // compare: (a, b) => a === b,
                 revalidateIfStale: false,
-                revalidateOnFocus: false,
                 revalidateOnReconnect: false,
                 errorRetryInterval: 1000,
                 errorRetryCount: 3,
-                revalidateOnMount: true, // If false, undefined data gets cached against the key.
                 dedupingInterval: 3_600_000, // dont duplicate a request w/ same key for 1hr
               }}
             >

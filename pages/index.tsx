@@ -45,10 +45,17 @@ export default function HomePage() {
   const [error, setError] = useState(undefined);
   const [address, setAddress] = useState('' ?? process.env.START_ADDRESS);
   const [contractAddress, setContractAddress] = useAtom(contractAddressAtom);
+  const [valid, setValid] = useState(false);
 
-  const totalSupply = useNFTTotalSupply();
   const contract = useNFTContract();
+  const totalSupply = useNFTTotalSupply();
   const isValidNFT = useIsERC721Enumerable();
+
+  useEffect(() => {
+    setValid(!!totalSupply?.data && !!contract && !!isValidNFT?.data);
+    console.log('valid', valid);
+  }, [totalSupply?.data, contract, isValidNFT?.data]);
+
   const { classes } = useStyles();
 
   useEffect(() => {
@@ -105,7 +112,7 @@ export default function HomePage() {
           </Text>
         </Paper>
       )}
-      {contract?.address && isValidNFT.data && (
+      {valid && (
         <>
           <Paper withBorder p="md" radius="md">
             <Stack spacing="md" align="center">
