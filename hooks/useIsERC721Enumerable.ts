@@ -22,7 +22,6 @@ export default function useIsERC721Enumerable() {
       //   await Promise.all(Object.values(interfaceId).map((id) => !!contract.supportsInterface(id)))
       // ).reduce((acc, curr) => acc && curr, true);
       const promise = await contract.supportsInterface(interfaceId.ERC721Enumerable);
-      console.log('useIsERC721Enumerable: ', promise);
       return !!promise;
     } catch (error) {
       console.debug(`error in useIsERC721Enumerable: ${error}`);

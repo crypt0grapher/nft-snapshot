@@ -7,7 +7,6 @@ const useNFTTotalSupply = () => {
   return useSWRImmutable('useNFTTotalSupply', async () => {
     console.log('useNFTTotalSupply');
     const ts = await tokenContract?.totalSupply();
-    console.log(ts.toString());
     return ts;
   });
 };

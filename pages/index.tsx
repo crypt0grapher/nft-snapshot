@@ -49,7 +49,6 @@ export default function HomePage() {
   const totalSupply = useNFTTotalSupply();
   const contract = useNFTContract();
   const isValidNFT = useIsERC721Enumerable();
-  console.log(`JSON.stringify(isValidNFT): ${JSON.stringify(isValidNFT)}`);
   const { classes } = useStyles();
 
   useEffect(() => {

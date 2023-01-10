@@ -1,4 +1,4 @@
-import { Text, Loader, ScrollArea, createStyles, Table, Button } from '@mantine/core';
+import { Text, Loader, ScrollArea, createStyles, Table, Button, Stack } from '@mantine/core';
 import Excel from 'exceljs';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -37,14 +37,10 @@ export function LoadNFTData() {
   const [scrolled, setScrolled] = useState(false);
   const workbook = new Excel.Workbook();
   const snapshot = useContractSnapshot();
-  console.log('snapshot: ', snapshot);
 
   const tokenIds = useNFTTokenIds();
-  console.log('tokenIds: ', tokenIds);
   const owners = useNFTOwners();
-  console.log('owners: ', owners);
   const tokenURIs = useNFTTokenURIs();
-  console.log('tokenURIs: ', tokenURIs);
 
   const columns = [
     {
@@ -120,32 +116,37 @@ export function LoadNFTData() {
           >
             Download Spreadsheet
           </Button>
-          <ScrollArea
-            sx={{
-              height: 700,
-              paddingBottom: 200,
-            }}
-            onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
-          >
-            <Table sx={{ minWidth: 700 }}>
-              <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
-                <tr>
-                  {columns.map((column) => (
-                    <th key={column.key}>{column.key}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {snapshot?.map((record) => (
-                  <tr key={record.tokenId}>
-                    {Object.entries(record).map(([key, value]) => (
-                      <td key={key}> {value ? value.toString() : '-'} </td>
+          <Stack>
+            <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
+              First 10 records:
+            </Text>
+            <ScrollArea
+              sx={{
+                height: 700,
+                paddingBottom: 200,
+              }}
+              onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+            >
+              <Table sx={{ minWidth: 700 }}>
+                <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
+                  <tr>
+                    {columns.map((column) => (
+                      <th key={column.key}>{column.key}</th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-          </ScrollArea>
+                </thead>
+                <tbody>
+                  {snapshot?.slice(10).map((record) => (
+                    <tr key={record.tokenId}>
+                      {Object.entries(record).map(([key, value]) => (
+                        <td key={key}> {value ? value.toString() : '-'} </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </ScrollArea>
+          </Stack>
         </>
       )}
     </>

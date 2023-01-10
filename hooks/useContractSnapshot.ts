@@ -24,7 +24,6 @@ export default function useContractSnapshot() {
         owner: owners?.data?.[i],
         tokenURI: tokenURIs?.data?.[i],
       }));
-      console.log('useContractSnapshot: ', table);
       return table;
     } catch (error) {
       console.error(error);
