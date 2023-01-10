@@ -78,8 +78,7 @@ export default function HomePage() {
         size="xl"
         value={address}
         onChange={(event) => setAddress(event.currentTarget.value)}
-        err
-        or={!address || isAddress(address) ? undefined : 'Invalid address'}
+        error={!address || isAddress(address) ? undefined : 'Invalid address'}
         rightSection={
           <ActionIcon
             size={32}
