@@ -17,18 +17,15 @@ import { useCallback, useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { isAddress } from 'ethers/lib/utils';
 import { atom, useAtom } from 'jotai';
-import { SWRResponse } from 'swr/_internal';
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
 import { Welcome } from '../components/Welcome/Welcome';
 import { hooks, network } from '../connectors/network';
 import useNFTContract from '../hooks/useNFTContract';
-import useNFTTotalSupply from '../hooks/useNFTTotalSupply';
 import { LoadNFTData } from '../components/LoadNFTData/LoadNFTData';
 import { contractAddressAtom } from '../hooks/contractAddressAtom';
 import useStyles from './styles';
-import useIsERC721Enumerable from '../hooks/useIsERC721Enumerable';
-import isLoadingSWR from '../utils/isLoadingSWR';
-import isFetched from '../utils/isFetched';
+import interfaceId from '../utils/interfaceId';
+import { totalSupplyAtom } from '../hooks/totalSupplyAtom';
 
 const { useChainId, useAccounts, useIsActivating, useIsActive, useProvider, useENSNames } = hooks;
 
@@ -42,19 +39,28 @@ export default function HomePage() {
 
   const provider = useProvider();
   const ENSNames = useENSNames(provider);
-  const [error, setError] = useState(undefined);
+  const [error, setError] = useState('');
   const [address, setAddress] = useState('' ?? process.env.NEXT_PUBLIC_START_ADDRESS);
   const [contractAddress, setContractAddress] = useAtom(contractAddressAtom);
+  const [totalSupplyValue, setTotalSupplyValue] = useAtom(totalSupplyAtom);
   const [valid, setValid] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const contract = useNFTContract();
-  const totalSupply = useNFTTotalSupply();
-  const isValidNFT = useIsERC721Enumerable();
-
+  const tokenContract = useNFTContract();
   useEffect(() => {
-    setValid(!!totalSupply?.data && !!contract && !!isValidNFT?.data);
-    console.log('valid', valid);
-  }, [totalSupply?.data, contract, isValidNFT?.data]);
+    console.log('useNFTTotalSupply');
+    tokenContract?.totalSupply().then((ts: any) => {
+      console.log(ts.toString());
+      setTotalSupplyValue(ts.toNumber());
+      tokenContract?.supportsInterface(interfaceId.ERC721Enumerable).then((isEnumerable: any) => {
+        setValid(!!isEnumerable);
+        if (!isEnumerable) {
+          setError('Contract does not support ERC721Enumerable');
+        }
+        setLoading(false);
+      });
+    });
+  }, [tokenContract]);
 
   const { classes } = useStyles();
   console.log(provider?.connection?.url);
@@ -68,6 +74,7 @@ export default function HomePage() {
   const onActionIconClick = useCallback(() => {
     console.log(`onActionIconClick, address ${address}`);
     isAddress(address) ? setContractAddress(address) : setContractAddress('');
+    setLoading(true);
   }, [address]);
 
   return (
@@ -95,7 +102,7 @@ export default function HomePage() {
             onClick={onActionIconClick}
             disabled={!(!address || isAddress(address))}
           >
-            {!isActive || (contract && !valid) ? (
+            {!isActive || loading ? (
               <Loader size={18} color={theme.white} />
             ) : (
               <IconArrowRight size={18} stroke={1.5} />
@@ -105,34 +112,29 @@ export default function HomePage() {
         placeholder="NFT Smart Contract Ethereum Address"
         rightSectionWidth={62}
       />
-      {contract?.address && isValidNFT.data === false && (
+      {tokenContract && !valid && error && (
         <Paper withBorder p="md" radius="md">
           <Text weight={500}>The contract is not valid ERC721numerable</Text>
           <Text weight={500} color="red">
-            {contractAddress}
+            {tokenContract?.address}
           </Text>
         </Paper>
       )}
-      {valid && (
+      {totalSupplyValue && (
         <>
           <Paper withBorder p="md" radius="md">
             <Stack spacing="md" align="center">
               <Text weight={500}>Valid ERC721Enumerable</Text>
               <Text weight={300} color="lime">
-                {contractAddress}
+                {tokenContract?.address}
               </Text>
               <Text weight={500}>Total supply:</Text>
-              {totalSupply && totalSupply.data && totalSupply.data > 0 ? (
-                <Text weight={300} color="lime">
-                  {' '}
-                  {totalSupply?.data?.toString()}
-                </Text>
-              ) : (
-                <Loader size={18} color={theme.white} />
-              )}
+              <Text weight={300} color="lime">
+                {totalSupplyValue}
+              </Text>
             </Stack>
           </Paper>
-          {parseInt(totalSupply?.data, 10) > 0 && <LoadNFTData />}
+          <LoadNFTData />
         </>
       )}
     </Stack>

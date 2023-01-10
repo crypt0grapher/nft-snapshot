@@ -3,11 +3,17 @@ import Excel from 'exceljs';
 import { useEffect, useMemo, useState } from 'react';
 
 import { saveAs } from 'file-saver';
-import useContractSnapshot from '../../hooks/useContractSnapshot';
-import useNFTTokenIds from '../../hooks/useNFTTokenIds';
-import useNFTOwners from '../../hooks/useNFTOwners';
-import useNFTTokenURIs from '../../hooks/useNFTTokenURIs';
+import { useAtom } from 'jotai';
+import { ContractCallContext, ContractCallResults, Multicall } from 'ethereum-multicall';
+import { BigNumber } from 'ethers';
+import useNFTContract from '../../hooks/useNFTContract';
+import interfaceId from '../../utils/interfaceId';
+import { contractAddressAtom } from '../../hooks/contractAddressAtom';
+import { totalSupplyAtom } from '../../hooks/totalSupplyAtom';
+import { hooks } from '../../connectors/network';
+import ERC721_ABI from '../../abi/erc721enumerable.abi.json';
 
+const { useChainId, useProvider } = hooks;
 const useStyles = createStyles((theme) => ({
   header: {
     position: 'sticky',
@@ -35,12 +41,19 @@ const useStyles = createStyles((theme) => ({
 export function LoadNFTData() {
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const workbook = new Excel.Workbook();
-  const snapshot = useContractSnapshot();
-
-  const tokenIds = useNFTTokenIds();
-  const owners = useNFTOwners();
-  const tokenURIs = useNFTTokenURIs();
+  const workbook = useMemo(() => new Excel.Workbook(), []);
+  const [totalSupplyValue] = useAtom(totalSupplyAtom);
+  const [currentStatus, setCurrentStatus] = useState('token Ids by indexes');
+  const [ready, setReady] = useState(false);
+  const provider = useProvider();
+  const tokenContract = useNFTContract();
+  const [snapshot, setSnapshot] = useState<
+    Array<{
+      tokenId: string;
+      owner: string;
+      tokenURI: string;
+    }>
+  >([]);
 
   const columns = [
     {
@@ -57,8 +70,8 @@ export function LoadNFTData() {
     },
   ];
 
-  const saveFile = async (fileName: string, workbook: any) => {
-    const xls64 = await workbook.xlsx.writeBuffer({ base64: true });
+  const saveFile = async (fileName: string, wb: any) => {
+    const xls64 = await wb.xlsx.writeBuffer({ base64: true });
     saveAs(
       new Blob([xls64], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -67,46 +80,110 @@ export function LoadNFTData() {
     );
   };
 
+  const multicall = useMemo(
+    () =>
+      new Multicall({
+        // @ts-ignore
+        ethersProvider: provider,
+        tryAggregate: true,
+      }),
+    [provider]
+  );
+
   useEffect(() => {
-    if (snapshot) {
-      const ws = workbook.addWorksheet('NFT');
-      ws.columns = columns;
-      ws.addRows(snapshot);
+    if (tokenContract !== null) {
+      const indices = Array.from(Array(totalSupplyValue || 0).keys());
+      const tokenByIndexCall = indices.map((i) => ({
+        reference: `tokenByIndex(${i})`,
+        methodName: 'tokenByIndex',
+        methodParameters: [i],
+      }));
+
+      const contractCallContextIndex: ContractCallContext[] = [
+        {
+          reference: 'tokenByIndexCall',
+          contractAddress: tokenContract.address,
+          abi: ERC721_ABI,
+          calls: tokenByIndexCall,
+        },
+      ];
+      console.log('calling multicall tokenByIndexCall');
+      multicall.call(contractCallContextIndex).then((tokenListResults) => {
+        const tokenIds = tokenListResults.results?.tokenByIndexCall?.callsReturnContext?.map(
+          (record) => BigNumber.from(record.returnValues[0])
+        );
+        tokenIds.push(BigNumber.from(totalSupplyValue));
+        indices.push(Number(totalSupplyValue));
+        setCurrentStatus('token owners by token ids');
+        const ownerCall = tokenIds.map((i) => ({
+          reference: `ownerOf(${i})`,
+          methodName: 'ownerOf',
+          methodParameters: [i],
+        }));
+
+        const tokenURICall = tokenIds.map((i) => ({
+          reference: `tokenURI(${i})`,
+          methodName: 'tokenURI',
+          methodParameters: [i],
+        }));
+
+        const contractCallContext: ContractCallContext[] = [
+          {
+            reference: 'owners',
+            contractAddress: tokenContract.address,
+            abi: ERC721_ABI,
+            calls: ownerCall,
+          },
+          {
+            reference: 'tokenURIs',
+            contractAddress: tokenContract.address,
+            abi: ERC721_ABI,
+            calls: tokenURICall,
+          },
+        ];
+        multicall.call(contractCallContext).then((contractCallResults) => {
+          setCurrentStatus('spreadsheet generated');
+          const worksheet = workbook.addWorksheet('NFT');
+          worksheet.columns = columns;
+          const table = indices.map((i) => {
+            const row = {
+              tokenId: tokenIds[i].toString(),
+              owner:
+                contractCallResults.results?.owners?.callsReturnContext[i].returnValues[0] || '-',
+              tokenURI:
+                contractCallResults.results?.tokenURIs?.callsReturnContext[i]?.returnValues[0] ||
+                '-',
+            };
+            worksheet.addRow(row);
+            return row;
+          });
+
+          setSnapshot(table);
+          setReady(true);
+        });
+      });
     }
-  }, [snapshot]);
+  }, []);
 
   return (
     <>
-      {!snapshot && <Loader size={100} color="lime" />}
-      {/*<Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">*/}
-      {!snapshot && (
-        // {!!tokenIds.data && !!owners?.data && !!tokenURIs?.data && !snapshot && (
-        <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-          Getting NFT data...
-        </Text>
+      {!ready && (
+        <>
+          <Loader size={100} color="lime" />
+          <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
+            Getting {currentStatus} ...
+          </Text>
+        </>
       )}
-      {/*</Text>*/}
 
-      {tokenIds?.data && (
-        <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-          Got {tokenIds.data.length} TokenIds
-        </Text>
-      )}
-      {owners?.data && (
-        <Text color="orange" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-          Loaded {owners.data.length} owners.
-        </Text>
-      )}
-      {tokenURIs?.data && (
-        <Text color="green" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-          Read {tokenURIs.data.length} NFT attribute URLs.
-        </Text>
-      )}
-      {!!snapshot && (
+      {ready && (
         <>
           <Button
             variant="gradient"
-            color="green"
+            gradient={{
+              from: 'green',
+              to: 'lime',
+            }}
             radius="xl"
             size="xl"
             styles={{
@@ -118,7 +195,7 @@ export function LoadNFTData() {
           </Button>
           <Stack>
             <Text color="dimmed" align="center" size="lg" sx={{ maxWidth: 580 }} mx="auto" mt="xl">
-              First 10 records:
+              Last 10 records:
             </Text>
             <ScrollArea
               sx={{
@@ -136,7 +213,7 @@ export function LoadNFTData() {
                   </tr>
                 </thead>
                 <tbody>
-                  {snapshot?.slice(10).map((record) => (
+                  {snapshot?.slice(-10).map((record) => (
                     <tr key={record.tokenId}>
                       {Object.entries(record).map(([key, value]) => (
                         <td key={key}> {value ? value.toString() : '-'} </td>
