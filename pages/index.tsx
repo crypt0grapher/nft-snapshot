@@ -112,15 +112,14 @@ export default function HomePage() {
         placeholder="NFT Smart Contract Ethereum Address"
         rightSectionWidth={62}
       />
-      {tokenContract && !valid && error && (
+      {tokenContract && !valid && error && !!totalSupplyValue ? (
         <Paper withBorder p="md" radius="md">
           <Text weight={500}>The contract is not valid ERC721numerable</Text>
           <Text weight={500} color="red">
             {tokenContract?.address}
           </Text>
         </Paper>
-      )}
-      {totalSupplyValue && (
+      ) : (
         <>
           <Paper withBorder p="md" radius="md">
             <Stack spacing="md" align="center">
