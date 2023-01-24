@@ -49,17 +49,31 @@ export default function HomePage() {
   const tokenContract = useNFTContract();
   useEffect(() => {
     console.log('useNFTTotalSupply');
-    tokenContract?.totalSupply().then((ts: any) => {
-      console.log(ts.toString());
-      setTotalSupplyValue(ts.toNumber());
-      tokenContract?.supportsInterface(interfaceId.ERC721Enumerable).then((isEnumerable: any) => {
+    tokenContract
+      ?.supportsInterface(interfaceId.ERC721Enumerable)
+      .then((isEnumerable: any) => {
         setValid(!!isEnumerable);
         if (!isEnumerable) {
           setError('Contract does not support ERC721Enumerable');
         }
+        tokenContract
+          .totalSupply()
+          .then((ts: any) => {
+            console.log(ts.toString());
+            setTotalSupplyValue(ts.toNumber());
+            setLoading(false);
+          })
+          .catch((e: any) => {
+            console.log(e);
+            setError(e.message);
+            setLoading(false);
+          });
+      })
+      .catch((e: any) => {
+        console.log(e);
+        setError(e.message);
         setLoading(false);
       });
-    });
   }, [tokenContract]);
 
   const { classes } = useStyles();
@@ -112,14 +126,15 @@ export default function HomePage() {
         placeholder="NFT Smart Contract Ethereum Address"
         rightSectionWidth={62}
       />
-      {tokenContract && !valid && error && !!totalSupplyValue ? (
+      {tokenContract && !valid && error && (
         <Paper withBorder p="md" radius="md">
           <Text weight={500}>The contract is not valid ERC721numerable</Text>
           <Text weight={500} color="red">
             {tokenContract?.address}
           </Text>
         </Paper>
-      ) : (
+      )}
+      {tokenContract && valid && !error && totalSupplyValue && (
         <>
           <Paper withBorder p="md" radius="md">
             <Stack spacing="md" align="center">

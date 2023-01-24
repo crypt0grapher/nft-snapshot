@@ -4,8 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { saveAs } from 'file-saver';
 import { useAtom } from 'jotai';
-import { ContractCallContext, ContractCallResults, Multicall } from 'ethereum-multicall';
+import {
+  ContractCallContext,
+  ContractCallResults,
+  Multicall,
+  MulticallOptionsEthers,
+} from 'ethereum-multicall';
 import { BigNumber } from 'ethers';
+import { BaseProvider } from '@ethersproject/providers';
 import useNFTContract from '../../hooks/useNFTContract';
 import interfaceId from '../../utils/interfaceId';
 import { contractAddressAtom } from '../../hooks/contractAddressAtom';
@@ -45,7 +51,7 @@ export function LoadNFTData() {
   const [totalSupplyValue] = useAtom(totalSupplyAtom);
   const [currentStatus, setCurrentStatus] = useState('token Ids by indexes');
   const [ready, setReady] = useState(false);
-  const provider = useProvider();
+  const provider = useProvider<BaseProvider>();
   const tokenContract = useNFTContract();
   const [snapshot, setSnapshot] = useState<
     Array<{
@@ -80,15 +86,15 @@ export function LoadNFTData() {
     );
   };
 
-  const multicall = useMemo(
-    () =>
-      new Multicall({
-        // @ts-ignore
+  const multicall = useMemo(() => {
+    if (provider) {
+      return new Multicall({
         ethersProvider: provider,
         tryAggregate: true,
-      }),
-    [provider]
-  );
+      });
+    }
+    return null;
+  }, [provider]);
 
   useEffect(() => {
     if (tokenContract !== null) {
