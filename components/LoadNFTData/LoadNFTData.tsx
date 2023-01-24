@@ -114,7 +114,7 @@ export function LoadNFTData() {
         },
       ];
       console.log('calling multicall tokenByIndexCall');
-      multicall.call(contractCallContextIndex).then((tokenListResults) => {
+      multicall?.call(contractCallContextIndex).then((tokenListResults) => {
         const tokenIds = tokenListResults.results?.tokenByIndexCall?.callsReturnContext?.map(
           (record) => BigNumber.from(record.returnValues[0])
         );
@@ -147,7 +147,7 @@ export function LoadNFTData() {
             calls: tokenURICall,
           },
         ];
-        multicall.call(contractCallContext).then((contractCallResults) => {
+        multicall?.call(contractCallContext).then((contractCallResults) => {
           setCurrentStatus('spreadsheet generated');
           const worksheet = workbook.addWorksheet('NFT');
           worksheet.columns = columns;
