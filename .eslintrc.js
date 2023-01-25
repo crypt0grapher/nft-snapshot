@@ -5,7 +5,15 @@ module.exports = {
     'plugin:jest/recommended',
     'plugin:storybook/recommended',
   ],
-  plugins: ['testing-library', 'jest'],
+  plugins: [
+    'testing-library',
+    'jest',
+    'simple-import-sort',
+    'unused-imports',
+    'react',
+    'react-hooks',
+    '@typescript-eslint',
+  ],
   overrides: [
     {
       files: ['**/?(*.)+(spec|test).[jt]s?(x)'],
@@ -17,5 +25,21 @@ module.exports = {
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
+    'object-curly-spacing': ['error', 'always'],
+    'unused-imports/no-unused-imports': 'error',
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+    camelcase: 'error',
+    'spaced-comment': 'error',
+    quotes: ['error', 'single', { avoidEscape: true }],
+    'no-duplicate-imports': 'error',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/ban-ts-ignore': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    'react-hooks/exhaustive-deps': 'off',
+    'object-shorthand': ['error', 'always'],
   },
 };

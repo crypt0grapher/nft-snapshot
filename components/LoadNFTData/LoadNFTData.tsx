@@ -1,25 +1,18 @@
-import { Text, Loader, ScrollArea, createStyles, Table, Button, Stack } from '@mantine/core';
+import { BaseProvider } from '@ethersproject/providers';
+import { Button, createStyles, Loader, ScrollArea, Stack, Table, Text } from '@mantine/core';
+import { ContractCallContext, Multicall } from 'ethereum-multicall';
+import { BigNumber } from 'ethers';
 import Excel from 'exceljs';
-import { useEffect, useMemo, useState } from 'react';
-
 import { saveAs } from 'file-saver';
 import { useAtom } from 'jotai';
-import {
-  ContractCallContext,
-  ContractCallResults,
-  Multicall,
-  MulticallOptionsEthers,
-} from 'ethereum-multicall';
-import { BigNumber } from 'ethers';
-import { BaseProvider } from '@ethersproject/providers';
-import useNFTContract from '../../hooks/useNFTContract';
-import interfaceId from '../../utils/interfaceId';
-import { contractAddressAtom } from '../../hooks/contractAddressAtom';
-import { totalSupplyAtom } from '../../hooks/totalSupplyAtom';
-import { hooks } from '../../connectors/network';
-import ERC721_ABI from '../../abi/erc721enumerable.abi.json';
+import { useEffect, useMemo, useState } from 'react';
 
-const { useChainId, useProvider } = hooks;
+import ERC721_ABI from '../../abi/erc721enumerable.abi.json';
+import { hooks } from '../../connectors/network';
+import { totalSupplyAtom } from '../../hooks/totalSupplyAtom';
+import useNFTContract from '../../hooks/useNFTContract';
+
+const { useProvider } = hooks;
 const useStyles = createStyles((theme) => ({
   header: {
     position: 'sticky',
@@ -113,7 +106,6 @@ export function LoadNFTData() {
           calls: tokenByIndexCall,
         },
       ];
-      console.log('calling multicall tokenByIndexCall');
       multicall?.call(contractCallContextIndex).then((tokenListResults) => {
         const tokenIds = tokenListResults.results?.tokenByIndexCall?.callsReturnContext?.map(
           (record) => BigNumber.from(record.returnValues[0])
